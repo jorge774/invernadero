@@ -6,7 +6,7 @@ import time
 REFRESH_INTERVAL = 30  # segundos
 
 st.title("🌿 Dashboard de Invernadero")
-st.subheader("📌 Última medición")
+#st.subheader("📌 Última medición")
 
 # Simula auto-refresh
 st.caption(f"Actualización automática cada {REFRESH_INTERVAL} segundos")
