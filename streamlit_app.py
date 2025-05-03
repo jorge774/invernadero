@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 import streamlit as st
 import pandas as pd
-st.subheader("📌 Última medición")
+from streamlit_autorefresh import st_autorefresh
+st.title("🌿 Dashboard de Invernadero")
+# Agrega esta línea al inicio del script:
+st_autorefresh(interval=30000, key="refresh")  # cada 30 segundos
 # Cargar los datos
 CSV_FILE = "datosInvernadero.csv"
 try:
