@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import streamlit as st
-
+import pandas as pd
 st.subheader("📌 Última medición")
 # Cargar los datos
 CSV_FILE = "datosInvernadero.csv"
