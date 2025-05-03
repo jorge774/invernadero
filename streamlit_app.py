@@ -2,11 +2,9 @@
 import streamlit as st
 import pandas as pd
 from streamlit_autorefresh import st_autorefresh
-# 🔁 Recarga automática cada 30 segundos
-REFRESH_INTERVAL = 30  # segundos
-
 st.title("🌿 Dashboard de Invernadero")
 #st.subheader("📌 Última medición")
+# 🔁 Recarga automática cada 30 segundos
 st_autorefresh(interval=30000, key="refresh")  # cada 30 segundos
 # Cargar los datos
 CSV_FILE = "datosInvernadero.csv"
