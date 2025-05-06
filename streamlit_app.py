@@ -26,6 +26,13 @@ except FileNotFoundError:
     with open(CSV_FILE, "w") as f:
         f.write(",".join(columnas) + "\n")
 
+# Crear archivo CSV cache
+try:
+    open("cache.csv", "r")
+except FileNotFoundError:
+    with open("cache.csv","w") as f:
+        f.write(",".join(columnas) + "\n")
+
 # === Funciones MQTT ===
 def on_connect(client, userdata, flags, rc):
     for topic, qos in TOPICS:
@@ -54,11 +61,15 @@ def on_message(client, userdata, msg):
 
     completo = all(clave in data_buffer and data_buffer[clave] not in [None, "", "null"] for clave in claves_esperadas)
     ahora = time.time()
-    if completo and (ahora - nonlocal_vars['ultimo_guardado']) >= INTERVALO:
-        with open(CSV_FILE, "a") as f:
-            f.write(f"{data_buffer['timestamp']},{data_buffer['temperatura']},{data_buffer['AireH']},{data_buffer['SueloH']},{data_buffer['Pres']},{data_buffer['Co2']},{data_buffer['Lu']}\n")
-        nonlocal_vars['ultimo_guardado'] = ahora
+    if completo:
+        if (ahora - nonlocal_vars['ultimo_guardado']) >= INTERVALO:
+            with open(CSV_FILE, "a") as f:
+                f.write(f"{data_buffer['timestamp']},{data_buffer['temperatura']},{data_buffer['AireH']},{data_buffer['SueloH']},{data_buffer['Pres']},{data_buffer['Co2']},{data_buffer['Lu']}\n")
+            nonlocal_vars['ultimo_guardado']=ahora
+        with open("cache.csv","w") as f:
+             f.write(f"{data_buffer['timestamp']},{data_buffer['temperatura']},{data_buffer['AireH']},{data_buffer['SueloH']},{data_buffer['Pres']},{data_buffer['Co2']},{data_buffer['Lu']}\n")
         data_buffer.clear()
+    
 
 def start_mqtt_listener():
     client = mqtt.Client()
@@ -77,7 +88,7 @@ st.title("🌿 Dashboard de Invernadero")
 st_autorefresh(interval=30000, key="refresh")
 
 try:
-    df = pd.read_csv(CSV_FILE, parse_dates=["timestamp"])
+    df = pd.read_csv("cache.csv", parse_dates=["timestamp"])
     ultima = df.iloc[-1]
     st.success("📁 Archivo CSV cargado correctamente.")
 except Exception:
