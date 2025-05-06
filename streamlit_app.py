@@ -7,6 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 import paho.mqtt.client as mqtt
 import threading
 import time
+import os
 
 # === Configuración MQTT ===
 BROKER = "test.mosquitto.org"
@@ -59,13 +60,12 @@ def on_message(client, userdata, msg):
             with open(CSV_FILE, "a") as f:
                 f.write(f"{data_buffer['timestamp']},{data_buffer['temperatura']},{data_buffer['AireH']},{data_buffer['SueloH']},{data_buffer['Pres']},{data_buffer['Co2']},{data_buffer['Lu']}\n")
             nonlocal_vars['ultimo_guardado']=ahora
-        with open("cache.csv","w") as f:#llenar un dataframe de caché
-             try:
-                 open("cache.csv", "r")
-             except FileNotFoundError:
-                 with open("cache.csv","w") as f:
-                      f.write(",".join(columnas) + "\n")
-                      f.write(f"{data_buffer['timestamp']},{data_buffer['temperatura']},{data_buffer['AireH']},{data_buffer['SueloH']},{data_buffer['Pres']},{data_buffer['Co2']},{data_buffer['Lu']}\n")
+        #Escribir encabezado solo si el archivo está vacío
+        write_header = not os.path.exists("cache.csv") or os.path.getsize("cache.csv") == 0
+        with open("cache.csv","w") as f:
+            if write_header:
+                f.write(",".join(columnas)+"\n")
+            f.write(f"{data_buffer['timestamp']},{data_buffer['temperatura']},{data_buffer['AireH']},{data_buffer['SueloH']},{data_buffer['Pres']},{data_buffer['Co2']},{data_buffer['Lu']}\n")
         data_buffer.clear()    
 
 def start_mqtt_listener():
