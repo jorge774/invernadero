@@ -26,13 +26,6 @@ except FileNotFoundError:
     with open(CSV_FILE, "w") as f:
         f.write(",".join(columnas) + "\n")
 
-# Crear archivo CSV cache
-try:
-    open("cache.csv", "r")
-except FileNotFoundError:
-    with open("cache.csv","w") as f:
-        f.write(",".join(columnas) + "\n")
-
 # === Funciones MQTT ===
 def on_connect(client, userdata, flags, rc):
     for topic, qos in TOPICS:
@@ -66,10 +59,14 @@ def on_message(client, userdata, msg):
             with open(CSV_FILE, "a") as f:
                 f.write(f"{data_buffer['timestamp']},{data_buffer['temperatura']},{data_buffer['AireH']},{data_buffer['SueloH']},{data_buffer['Pres']},{data_buffer['Co2']},{data_buffer['Lu']}\n")
             nonlocal_vars['ultimo_guardado']=ahora
-        with open("cache.csv","w") as f:
-             f.write(f"{data_buffer['timestamp']},{data_buffer['temperatura']},{data_buffer['AireH']},{data_buffer['SueloH']},{data_buffer['Pres']},{data_buffer['Co2']},{data_buffer['Lu']}\n")
-        data_buffer.clear()
-    
+        with open("cache.csv","w") as f:#llenar un dataframe de caché
+             try:
+                 open("cache.csv", "r")
+             except FileNotFoundError:
+                 with open("cache.csv","w") as f:
+                      f.write(",".join(columnas) + "\n")
+                      f.write(f"{data_buffer['timestamp']},{data_buffer['temperatura']},{data_buffer['AireH']},{data_buffer['SueloH']},{data_buffer['Pres']},{data_buffer['Co2']},{data_buffer['Lu']}\n")
+        data_buffer.clear()    
 
 def start_mqtt_listener():
     client = mqtt.Client()
