@@ -14,6 +14,7 @@ BROKER = "test.mosquitto.org"
 PORT = 1883
 TOPICS = [("sensor/temperatura",0),("sensor/AireH",0),("sensor/SueloH",0),("sensor/Pres",0),("sensor/Co2",0),("sensor/Lu",0)]
 CSV_FILE = "datosInvernadero.csv"
+CACHE_FILE = "cache.csv"
 INTERVALO = 300  # 5 minutos
 columnas = ["timestamp","temperatura", "humedad_aire", "humedad_suelo", "presion", "co2", "lumenes"]
 claves_esperadas = ["temperatura", "AireH", "SueloH", "Pres", "Co2", "Lu"]
@@ -26,6 +27,16 @@ try:
 except FileNotFoundError:
     with open(CSV_FILE, "w") as f:
         f.write(",".join(columnas) + "\n")
+
+# Crear archivo CSV de cache
+try:
+    open(CACHE_FILE, "r")
+except FileNotFoundError:
+    with open(CACHE_FILE, "w") as f:
+        f.write(",".join(columnas) + "\n")
+    with open(CACHE_FILE, "a") as f:
+        f.write(",".join(columnas) + "\n") 
+
 
 # === Funciones MQTT ===
 def on_connect(client, userdata, flags, rc):
@@ -60,12 +71,9 @@ def on_message(client, userdata, msg):
             with open(CSV_FILE, "a") as f:
                 f.write(f"{data_buffer['timestamp']},{data_buffer['temperatura']},{data_buffer['AireH']},{data_buffer['SueloH']},{data_buffer['Pres']},{data_buffer['Co2']},{data_buffer['Lu']}\n")
             nonlocal_vars['ultimo_guardado']=ahora
-        #Escribir encabezado solo si el archivo está vacío
-        write_header = not os.path.exists("cache.csv") or os.path.getsize("cache.csv") == 0
-        with open("cache.csv","w") as f:
-            if write_header:
-                f.write(",".join(columnas)+"\n")
-            f.write(f"{data_buffer['timestamp']},{data_buffer['temperatura']},{data_buffer['AireH']},{data_buffer['SueloH']},{data_buffer['Pres']},{data_buffer['Co2']},{data_buffer['Lu']}\n")
+        with open(CACHE_FILE, "r") as f:content=f.readlines()
+        content[-1]=(f"{data_buffer['timestamp']},{data_buffer['temperatura']},{data_buffer['AireH']},{data_buffer['SueloH']},{data_buffer['Pres']},{data_buffer['Co2']},{data_buffer['Lu']}\n")       
+        with open(CACHE_FILE, "w") as f:f.writelines(content)
         data_buffer.clear()    
 
 def start_mqtt_listener():
@@ -74,7 +82,7 @@ def start_mqtt_listener():
     client.on_message = on_message
     client.connect(BROKER, PORT, keepalive=60)
     client.loop_forever()
-
+    
 # Iniciar MQTT en hilo separado
 if 'mqtt_started' not in st.session_state:
     threading.Thread(target=start_mqtt_listener, daemon=True).start()
@@ -85,7 +93,7 @@ st.title("🌿 Dashboard de Invernadero")
 st_autorefresh(interval=30000, key="refresh")
 
 try:
-    df = pd.read_csv("cache.csv", parse_dates=["timestamp"])
+    df = pd.read_csv(CACHE_FILE, parse_dates=["timestamp"])
     ultima = df.iloc[-1]
     st.success("📁 Archivo CSV cargado correctamente.")
 except Exception:
