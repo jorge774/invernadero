@@ -90,7 +90,7 @@ if 'mqtt_started' not in st.session_state:
 
 # === INTERFAZ STREAMLIT ===
 st.title("🌿 Dashboard de Invernadero")
-st_autorefresh(interval=30000, key="refresh")
+st_autorefresh(interval=5000, key="refresh")
 
 try:
     df = pd.read_csv(CACHE_FILE, parse_dates=["timestamp"])
