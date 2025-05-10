@@ -89,8 +89,15 @@ if 'mqtt_started' not in st.session_state:
     st.session_state['mqtt_started'] = True
 
 # === INTERFAZ STREAMLIT ===
+
+st.set_page_config(
+    page_title="🌿 Invernadero Inteligente",
+    page_icon="🌱",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 st.title("🌿 Dashboard de Invernadero")
-st_autorefresh(interval=1000, key="refresh")
+st_autorefresh(interval=500, key="refresh")
 
 try:
     df = pd.read_csv(CACHE_FILE, parse_dates=["timestamp"])
