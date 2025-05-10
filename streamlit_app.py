@@ -106,7 +106,7 @@ try:
     df = pd.read_csv(CACHE_FILE, parse_dates=["timestamp"])
     ultima = df.iloc[-1]
     if fila_es_cero(ultima):
-        st.warning("⚠️ La última medición contiene solo ceros. Verificá si los sensores están funcionando.")
+        st.warning("⚠️ La última medición contiene solo ceros. Verifica si los sensores están funcionando.")
         st.stop()
     st.success("📁 Esperando datos para ser procesados.")
 except Exception:
