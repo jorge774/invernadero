@@ -91,7 +91,7 @@ if 'mqtt_started' not in st.session_state:
 # === INTERFAZ STREAMLIT ===
 
 st.set_page_config(
-    page_title="🌿 Invernadero Inteligente",
+    page_title="Invernadero Inteligente",
     page_icon="🌱",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -103,6 +103,7 @@ try:
     df = pd.read_csv(CACHE_FILE, parse_dates=["timestamp"])
     ultima = df.iloc[-1]
     st.success("📁 Archivo CSV cargado correctamente.")
+    print(ultima['temperatura'])
 except Exception:
     st.warning("⚠️ Aún no hay datos registrados.")
     st.stop()
