@@ -103,7 +103,7 @@ try:
     df = pd.read_csv(CACHE_FILE, parse_dates=["timestamp"])
     ultima = df.iloc[-1]
     st.success("📁 Archivo CSV cargado correctamente.")
-    st.write(ultima['temperatura']))
+    st.write(ultima['temperatura'])
 except Exception:
     st.warning("⚠️ Aún no hay datos registrados.")
     st.stop()
