@@ -17,6 +17,7 @@ CSV_FILE = "datosInvernadero.csv"
 CACHE_FILE = "cache.csv"
 INTERVALO = 300  # 5 minutos
 columnas = ["timestamp","temperatura", "humedad_aire", "humedad_suelo", "presion", "co2", "lumenes"]
+ini_cache=[str(0) for _ in columnas]
 claves_esperadas = ["temperatura", "AireH", "SueloH", "Pres", "Co2", "Lu"]
 data_buffer = {}
 ultimo_guardado = 0
@@ -35,7 +36,7 @@ except FileNotFoundError:
     with open(CACHE_FILE, "w") as f:
         f.write(",".join(columnas) + "\n")
     with open(CACHE_FILE, "a") as f:
-        f.write(",".join(columnas) + "\n") 
+        f.write(",".join(ini_cache) + "\n")
 
 
 # === Funciones MQTT ===
@@ -89,6 +90,8 @@ if 'mqtt_started' not in st.session_state:
     st.session_state['mqtt_started'] = True
 
 # === INTERFAZ STREAMLIT ===
+def fila_es_cero(fila):
+    return fila.drop(labels=["timestamp"]).eq(0).all()
 
 st.set_page_config(
     page_title="Invernadero Inteligente",
@@ -102,10 +105,12 @@ st_autorefresh(interval=500, key="refresh")
 try:
     df = pd.read_csv(CACHE_FILE, parse_dates=["timestamp"])
     ultima = df.iloc[-1]
-    st.success("📁 Archivo CSV cargado correctamente.")
-    st.write(ultima['temperatura'])
+    if fila_es_cero(ultima):
+        st.warning("⚠️ La última medición contiene solo ceros. Verificá si los sensores están funcionando.")
+        st.stop()
+    st.success("📁 Esperando datos para ser procesados.")
 except Exception:
-    st.warning("⚠️ Aún no hay datos registrados.")
+    st.warning("⚠️ Ha ocurrido un error al tratar almacenar datos entrantes.")
     st.stop()
 
 a, b = st.columns(2)
