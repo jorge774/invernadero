@@ -13,21 +13,21 @@ import os
 BROKER = "test.mosquitto.org"
 PORT = 1883
 TOPICS = [("sensor/temperatura",0),("sensor/AireH",0),("sensor/SueloH",0),("sensor/Pres",0),("sensor/Co2",0),("sensor/Lu",0)]
-CSV_FILE = "datosInvernadero.csv"
+#CSV_FILE = "datosInvernadero.csv"
 CACHE_FILE = "cache.csv"
 INTERVALO = 300  # 5 minutos
 columnas = ["timestamp","temperatura", "humedad_aire", "humedad_suelo", "presion", "co2", "lumenes"]
 ini_cache=[str(0) for _ in columnas]
 claves_esperadas = ["temperatura", "AireH", "SueloH", "Pres", "Co2", "Lu"]
 data_buffer = {}
-ultimo_guardado = 0
+#ultimo_guardado = 0
 
 # Crear archivo CSV si no existe
-try:
-    open(CSV_FILE, "r")
-except FileNotFoundError:
-    with open(CSV_FILE, "w") as f:
-        f.write(",".join(columnas) + "\n")
+#try:
+    #open(CSV_FILE, "r")
+#except FileNotFoundError:
+    #with open(CSV_FILE, "w") as f:
+        #f.write(",".join(columnas) + "\n")
 
 # Crear archivo CSV de cache
 try:
@@ -45,8 +45,8 @@ def on_connect(client, userdata, flags, rc):
         client.subscribe(topic)
 
 def on_message(client, userdata, msg):
-    nonlocal_vars = globals()
-    nonlocal_vars['ultimo_guardado']  # para evitar warning
+    #nonlocal_vars = globals()
+    #nonlocal_vars['ultimo_guardado']  # para evitar warning
     timestamp = datetime.now().isoformat(timespec='seconds')
     data_buffer["timestamp"] = timestamp
     topic = msg.topic
@@ -66,12 +66,12 @@ def on_message(client, userdata, msg):
         data_buffer["Lu"] = float(value)
 
     completo = all(clave in data_buffer and data_buffer[clave] not in [None, "", "null"] for clave in claves_esperadas)
-    ahora = time.time()
+    #ahora = time.time()
     if completo:
-        if (ahora - nonlocal_vars['ultimo_guardado']) >= INTERVALO:
-            with open(CSV_FILE, "a") as f:
-                f.write(f"{data_buffer['timestamp']},{data_buffer['temperatura']},{data_buffer['AireH']},{data_buffer['SueloH']},{data_buffer['Pres']},{data_buffer['Co2']},{data_buffer['Lu']}\n")
-            nonlocal_vars['ultimo_guardado']=ahora
+        #if (ahora - nonlocal_vars['ultimo_guardado']) >= INTERVALO:
+            #with open(CSV_FILE, "a") as f:
+                #f.write(f"{data_buffer['timestamp']},{data_buffer['temperatura']},{data_buffer['AireH']},{data_buffer['SueloH']},{data_buffer['Pres']},{data_buffer['Co2']},{data_buffer['Lu']}\n")
+            #nonlocal_vars['ultimo_guardado']=ahora
         with open(CACHE_FILE, "r") as f:content=f.readlines()
         content[-1]=(f"{data_buffer['timestamp']},{data_buffer['temperatura']},{data_buffer['AireH']},{data_buffer['SueloH']},{data_buffer['Pres']},{data_buffer['Co2']},{data_buffer['Lu']}\n")       
         with open(CACHE_FILE, "w") as f:f.writelines(content)
