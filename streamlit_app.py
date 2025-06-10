@@ -108,3 +108,30 @@ d.metric(label="📈 Presión (kPa)", value=f"{ultima['presion']:.1f}",border=Tr
 e.metric(label="🟢 CO₂ (ppm)", value=f"{ultima['co2']:.0f}",border=True)
 f.metric(label="💡 Lumenes",value= f"{ultima['lumenes']:.0f}",border=True)
 
+####################################descargar datos########################################################################
+st.markdown("---")
+st.subheader("📅 Descargar CSV histórico desde servidor remoto")
+
+# Selección de fecha
+fecha_seleccionada = st.date_input("Selecciona la fecha de los datos que quieres descargar")
+
+# Construir URL al archivo remoto
+fecha_str = fecha_seleccionada.strftime("%Y%m%d")
+csv_url = f"http://<ip_publica>:8080/{fecha_str}.csv"
+
+# Descargar el CSV remoto
+try:
+    df_remoto = pd.read_csv(csv_url)
+    st.success(f"✅ Archivo cargado correctamente desde: {csv_url}")
+
+    st.dataframe(df_remoto, use_container_width=True)
+
+    # Preparar archivo para descarga
+    csv_bytes = df_remoto.to_csv(index=False).encode("utf-8")
+    st.download_button("⬇️ Descargar CSV", data=csv_bytes, file_name=f"datosInvernadero_{fecha_str}.csv", mime="text/csv")
+
+except Exception as e:
+    st.warning(f"⚠️ No se pudo cargar el archivo para {fecha_str}. Verifica si el invernadero adquirió datos en esa fecha.")
+    st.text(f"Detalles técnicos: {e}")
+
+
