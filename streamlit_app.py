@@ -13,7 +13,6 @@ import os
 BROKER = "test.mosquitto.org"
 PORT = 1883
 TOPICS = [("sensor/temperatura",0),("sensor/AireH",0),("sensor/SueloH",0),("sensor/Pres",0),("sensor/Co2",0),("sensor/Lu",0)]
-#CSV_FILE = "datosInvernadero.csv"
 CACHE_FILE = "cache.csv"
 columnas = ["timestamp","temperatura", "humedad_aire", "humedad_suelo", "presion", "co2", "lumenes"]
 ini_cache=[str(0) for _ in columnas]
