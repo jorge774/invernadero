@@ -132,6 +132,6 @@ try:
 
 except Exception as e:
     st.warning(f"⚠️ No se pudo cargar el archivo para {fecha_str}. Verifica si el invernadero adquirió datos en esa fecha.")
-    st.text(f"Detalles técnicos: {e}")
+    #st.text(f"Detalles técnicos: {e}")
 
 
