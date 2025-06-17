@@ -117,7 +117,7 @@ fecha_seleccionada = st.date_input("Selecciona la fecha de los datos que quieres
 
 # Construir URL al archivo remoto
 fecha_str = fecha_seleccionada.strftime("%Y%m%d")
-csv_url = f"http://<ip_publica>:8080/{fecha_str}.csv"
+csv_url = f"https://med-bag-undertaken-cyber.trycloudflare.com/{fecha_str}.csv"
 
 # Descargar el CSV remoto
 try:
