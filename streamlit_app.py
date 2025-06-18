@@ -134,6 +134,38 @@ except Exception as e:
     st.warning(f"⚠️ No se pudo cargar el archivo para {fecha_str}. Verifica si el invernadero adquirió datos en esa fecha.")
     #st.text(f"Detalles técnicos: {e}")
 
+################################### Visualización interactiva ####################################################
+st.markdown("---")
+st.subheader("📈 Visualización interactiva de variables")
+
+if 'df_remoto' in locals():
+    opciones = {
+        "🌡️ Temperatura (°C)": "temperatura",
+        "💧 Humedad en aire (%)": "humedad_aire",
+        "🌱 Humedad en suelo (%)": "humedad_suelo",
+        "📈 Presión (kPa)": "presion",
+        "🟢 CO₂ (ppm)": "co2",
+        "💡 Lumenes": "lumenes"
+    }
+
+    variable = st.selectbox("Selecciona la variable a graficar:", list(opciones.keys()))
+    nombre_columna = opciones[variable]
+
+    try:
+        # Asegurar que timestamp esté como índice de tiempo
+        df_remoto["timestamp"] = pd.to_datetime(df_remoto["timestamp"])
+        df_remoto = df_remoto.sort_values("timestamp")
+        df_remoto.set_index("timestamp", inplace=True)
+
+        st.line_chart(df_remoto[[nombre_columna]])
+
+    except Exception as e:
+        st.warning("⚠️ No se pudo graficar la variable seleccionada.")
+        st.text(f"Error: {e}")
+else:
+    st.info("ℹ️ Primero asegurate de tener el csv con datos historicos.")
+
+
 
 
 
