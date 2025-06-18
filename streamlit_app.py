@@ -84,29 +84,33 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 st.title("🌿 Dashboard de Invernadero")
-st_autorefresh(interval=500, key="refresh")
+# === Actualización automática solo de la sección dashboard ===
+with st.container():
+    refresh = st_autorefresh(interval=300, key="dashboard_refresh", limit=None, disable=False)
 
-try:
-    df = pd.read_csv(CACHE_FILE, parse_dates=["timestamp"])
-    ultima = df.iloc[-1]
-    if fila_es_cero(ultima):
-        st.warning("⚠️ La última medición contiene solo ceros. Verifica si los sensores están funcionando.")
+    st.subheader("🌿 Datos en tiempo real (refresca cada 30 ms)")
+    
+    try:
+        df = pd.read_csv(CACHE_FILE, parse_dates=["timestamp"])
+        ultima = df.iloc[-1]
+        if fila_es_cero(ultima):
+            st.warning("⚠️ La última medición contiene solo ceros. Verifica si los sensores están funcionando.")
+            st.stop()
+        st.success("📁 Esperando datos para ser procesados.")
+    except Exception:
+        st.warning("⚠️ Ha ocurrido un error al tratar almacenar datos entrantes.")
         st.stop()
-    st.success("📁 Esperando datos para ser procesados.")
-except Exception:
-    st.warning("⚠️ Ha ocurrido un error al tratar almacenar datos entrantes.")
-    st.stop()
 
-a, b = st.columns(2)
-c, d = st.columns(2)
-e, f = st.columns(2)
+    a, b = st.columns(2)
+    c, d = st.columns(2)
+    e, f = st.columns(2)
 
-a.metric(label="🌡️ Temp (°C)", value=f"{ultima['temperatura']:.1f}",border=True)
-b.metric(label="💧 Humedad aire (%)",value= f"{ultima['humedad_aire']:.1f}",border=True)
-c.metric(label="🌱 Humedad suelo (%)", value=f"{ultima['humedad_suelo']:.1f}",border=True)
-d.metric(label="📈 Presión (kPa)", value=f"{ultima['presion']:.1f}",border=True)
-e.metric(label="🟢 CO₂ (ppm)", value=f"{ultima['co2']:.0f}",border=True)
-f.metric(label="💡 Lumenes",value= f"{ultima['lumenes']:.0f}",border=True)
+    a.metric(label="🌡️ Temp (°C)", value=f"{ultima['temperatura']:.1f}",border=True)
+    b.metric(label="💧 Humedad aire (%)",value= f"{ultima['humedad_aire']:.1f}",border=True)
+    c.metric(label="🌱 Humedad suelo (%)", value=f"{ultima['humedad_suelo']:.1f}",border=True)
+    d.metric(label="📈 Presión (kPa)", value=f"{ultima['presion']:.1f}",border=True)
+    e.metric(label="🟢 CO₂ (ppm)", value=f"{ultima['co2']:.0f}",border=True)
+    f.metric(label="💡 Lumenes",value= f"{ultima['lumenes']:.0f}",border=True)
 
 ####################################Descargar datos########################################################################
 st.markdown("---")
