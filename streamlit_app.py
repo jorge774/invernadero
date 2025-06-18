@@ -90,7 +90,7 @@ tab1, tab2, tab3 = st.tabs(["📊 Dashboard en tiempo real", "📅 Descargar CSV
 # === TAB 1: Dashboard en tiempo real ===
 with tab1:
     refresh = st_autorefresh(interval=300, key="dashboard_refresh", limit=None)
-    st.subheader("🌿 Datos en tiempo real (refresca cada 30 segundos)")    
+    st.subheader("🌿 Datos en tiempo real (refresca cada 30 ms)")    
     try:
         df = pd.read_csv(CACHE_FILE, parse_dates=["timestamp"])
         ultima = df.iloc[-1]
