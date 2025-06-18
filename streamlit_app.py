@@ -84,10 +84,13 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 st.title("🌿 Dashboard de Invernadero")
-# === Actualización automática solo de la sección dashboard ===
-with st.container():
-    refresh = st_autorefresh(interval=300, key="dashboard_refresh", limit=None)
-    st.subheader("🌿 Datos en tiempo real (refresca cada 30 ms)")    
+# === Interfaz con pestañas ===
+tab1, tab2, tab3 = st.tabs(["📊 Dashboard en tiempo real", "📅 Descargar CSV", "📈 Gráficas"])
+
+# === TAB 1: Dashboard en tiempo real ===
+with tab1:
+    refresh = st_autorefresh(interval=30_000, key="dashboard_refresh", limit=None)
+    st.subheader("🌿 Datos en tiempo real (refresca cada 30 segundos)")    
     try:
         df = pd.read_csv(CACHE_FILE, parse_dates=["timestamp"])
         ultima = df.iloc[-1]
@@ -98,6 +101,7 @@ with st.container():
     except Exception:
         st.warning("⚠️ Ha ocurrido un error al tratar almacenar datos entrantes.")
         st.stop()
+
     a, b = st.columns(2)
     c, d = st.columns(2)
     e, f = st.columns(2)
@@ -108,63 +112,54 @@ with st.container():
     e.metric(label="🟢 CO₂ (ppm)", value=f"{ultima['co2']:.0f}",border=True)
     f.metric(label="💡 Lumenes",value= f"{ultima['lumenes']:.0f}",border=True)
 
-####################################Descargar datos########################################################################
-st.markdown("---")
-st.subheader("📅 Descargar CSV histórico desde servidor remoto")
+# === TAB 2: Descarga de datos ===
+with tab2:
+    st.subheader("📅 Descargar CSV histórico desde servidor remoto")
 
-# Selección de fecha
-fecha_seleccionada = st.date_input("Selecciona la fecha de los datos que quieres descargar")
-
-# Construir URL al archivo remoto
-fecha_str = fecha_seleccionada.strftime("%Y%m%d")
-csv_url = f"https://crude-shirt-answer-endorsement.trycloudflare.com/{fecha_str}.csv"
-
-# Descargar el CSV remoto
-try:
-    df_remoto = pd.read_csv(csv_url)
-    st.success(f"✅ Archivo cargado correctamente desde el repositorio.")
-
-    st.dataframe(df_remoto, use_container_width=True)
-
-    # Preparar archivo para descarga
-    csv_bytes = df_remoto.to_csv(index=False).encode("utf-8")
-    st.download_button("⬇️ Descargar CSV", data=csv_bytes, file_name=f"datosInvernadero_{fecha_str}.csv", mime="text/csv")
-
-except Exception as e:
-    st.warning(f"⚠️ No se pudo cargar el archivo para {fecha_str}. Verifica si el invernadero adquirió datos en esa fecha.")
-    #st.text(f"Detalles técnicos: {e}")
-
-
-################################### Visualización interactiva ####################################################
-st.markdown("---")
-st.subheader("📈 Visualización interactiva de variables")
-
-if 'df_remoto' in locals():
-    opciones = {
-        "🌡️ Temperatura (°C)": "temperatura",
-        "💧 Humedad en aire (%)": "humedad_aire",
-        "🌱 Humedad en suelo (%)": "humedad_suelo",
-        "📈 Presión (kPa)": "presion",
-        "🟢 CO₂ (ppm)": "co2",
-        "💡 Lumenes": "lumenes"
-    }
-
-    variable = st.selectbox("Selecciona la variable a graficar:", list(opciones.keys()))
-    nombre_columna = opciones[variable]
+    fecha_seleccionada = st.date_input("Selecciona la fecha de los datos que quieres descargar")
+    fecha_str = fecha_seleccionada.strftime("%Y%m%d")
+    csv_url = f"https://crude-shirt-answer-endorsement.trycloudflare.com/{fecha_str}.csv"
 
     try:
-        # Asegurar que timestamp esté como índice de tiempo
-        df_remoto["timestamp"] = pd.to_datetime(df_remoto["timestamp"])
-        df_remoto = df_remoto.sort_values("timestamp")
-        df_remoto.set_index("timestamp", inplace=True)
+        df_remoto = pd.read_csv(csv_url)
+        st.success(f"✅ Archivo cargado correctamente desde el repositorio.")
+        st.dataframe(df_remoto, use_container_width=True)
 
-        st.line_chart(df_remoto[[nombre_columna]])
+        csv_bytes = df_remoto.to_csv(index=False).encode("utf-8")
+        st.download_button("⬇️ Descargar CSV", data=csv_bytes, file_name=f"datosInvernadero_{fecha_str}.csv", mime="text/csv")
 
     except Exception as e:
-        st.warning("⚠️ No se pudo graficar la variable seleccionada.")
-        #st.text(f"Error: {e}")
-else:
-    st.info("ℹ️ No se puede acceder al repositorio con los datos historicos.")
+        st.warning(f"⚠️ No se pudo cargar el archivo para {fecha_str}. Verifica si el invernadero adquirió datos en esa fecha.")
+
+# === TAB 3: Visualización interactiva ===
+with tab3:
+    st.subheader("📈 Visualización interactiva de variables")
+
+    if 'df_remoto' in locals():
+        opciones = {
+            "🌡️ Temperatura (°C)": "temperatura",
+            "💧 Humedad en aire (%)": "humedad_aire",
+            "🌱 Humedad en suelo (%)": "humedad_suelo",
+            "📈 Presión (kPa)": "presion",
+            "🟢 CO₂ (ppm)": "co2",
+            "💡 Lumenes": "lumenes"
+        }
+
+        variable = st.selectbox("Selecciona la variable a graficar:", list(opciones.keys()))
+        nombre_columna = opciones[variable]
+
+        try:
+            df_remoto["timestamp"] = pd.to_datetime(df_remoto["timestamp"])
+            df_remoto = df_remoto.sort_values("timestamp")
+            df_remoto.set_index("timestamp", inplace=True)
+
+            st.line_chart(df_remoto[[nombre_columna]])
+
+        except Exception as e:
+            st.warning("⚠️ No se pudo graficar la variable seleccionada.")
+    else:
+        st.info("ℹ️ No se puede acceder al repositorio con los datos históricos.")
+
 
 
 
