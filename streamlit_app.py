@@ -3,6 +3,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+from streamlit_autorefresh import st_autorefresh
 import paho.mqtt.client as mqtt
 import threading
 import time
@@ -18,6 +19,7 @@ ini_cache=[str(0) for _ in columnas]
 claves_esperadas = ["temperatura", "AireH", "SueloH", "Pres", "Co2", "Lu"]
 data_buffer = {}
 
+
 # Crear archivo CSV de cache
 try:
     open(CACHE_FILE, "r")
@@ -26,6 +28,7 @@ except FileNotFoundError:
         f.write(",".join(columnas) + "\n")
     with open(CACHE_FILE, "a") as f:
         f.write(",".join(ini_cache) + "\n")
+
 
 # === Funciones MQTT ===
 def on_connect(client, userdata, flags, rc):
@@ -64,7 +67,7 @@ def start_mqtt_listener():
     client.on_message = on_message
     client.connect(BROKER, PORT, keepalive=60)
     client.loop_forever()
-
+    
 # Iniciar MQTT en hilo separado
 if 'mqtt_started' not in st.session_state:
     threading.Thread(target=start_mqtt_listener, daemon=True).start()
@@ -81,17 +84,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 st.title("🌿 Dashboard de Invernadero")
-
-# === Rerun automático solo para dashboard ===
-if "last_rerun" not in st.session_state:
-    st.session_state["last_rerun"] = time.time()
-else:
-    if time.time() - st.session_state["last_rerun"] > 0.03:
-        st.session_state["last_rerun"] = time.time()
-        st.rerun()
-
-# === Dashboard ===
+# === Actualización automática solo de la sección dashboard ===
 with st.container():
+    refresh = st_autorefresh(interval=500, key="dashboard_refresh", limit=None)
     st.subheader("🌿 Datos en tiempo real (refresca cada 30 ms)")    
     try:
         df = pd.read_csv(CACHE_FILE, parse_dates=["timestamp"])
@@ -103,7 +98,6 @@ with st.container():
     except Exception:
         st.warning("⚠️ Ha ocurrido un error al tratar almacenar datos entrantes.")
         st.stop()
-
     a, b = st.columns(2)
     c, d = st.columns(2)
     e, f = st.columns(2)
@@ -114,21 +108,31 @@ with st.container():
     e.metric(label="🟢 CO₂ (ppm)", value=f"{ultima['co2']:.0f}",border=True)
     f.metric(label="💡 Lumenes",value= f"{ultima['lumenes']:.0f}",border=True)
 
-# === Descarga CSV ===
+####################################Descargar datos########################################################################
 st.markdown("---")
 st.subheader("📅 Descargar CSV histórico desde servidor remoto")
+
+# Selección de fecha
 fecha_seleccionada = st.date_input("Selecciona la fecha de los datos que quieres descargar")
+
+# Construir URL al archivo remoto
 fecha_str = fecha_seleccionada.strftime("%Y%m%d")
 csv_url = f"https://crude-shirt-answer-endorsement.trycloudflare.com/{fecha_str}.csv"
+
+# Descargar el CSV remoto
 try:
     df_remoto = pd.read_csv(csv_url)
     st.success(f"✅ Archivo cargado correctamente desde el repositorio.")
+
     st.dataframe(df_remoto, use_container_width=True)
+
+    # Preparar archivo para descarga
     csv_bytes = df_remoto.to_csv(index=False).encode("utf-8")
     st.download_button("⬇️ Descargar CSV", data=csv_bytes, file_name=f"datosInvernadero_{fecha_str}.csv", mime="text/csv")
+
 except Exception as e:
     st.warning(f"⚠️ No se pudo cargar el archivo para {fecha_str}. Verifica si el invernadero adquirió datos en esa fecha.")
-
+    #st.text(f"Detalles técnicos: {e}")
 
 
 
