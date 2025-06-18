@@ -164,7 +164,7 @@ if 'df_remoto' in locals():
         st.warning("⚠️ No se pudo graficar la variable seleccionada.")
         #st.text(f"Error: {e}")
 else:
-    st.info("ℹ️ Primero descarga un archivo CSV para poder visualizar sus datos.")
+    st.info("ℹ️ No se puede acceder al repositorio con los datos historicos.")
 
 
 
