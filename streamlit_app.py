@@ -108,7 +108,7 @@ d.metric(label="📈 Presión (kPa)", value=f"{ultima['presion']:.1f}",border=Tr
 e.metric(label="🟢 CO₂ (ppm)", value=f"{ultima['co2']:.0f}",border=True)
 f.metric(label="💡 Lumenes",value= f"{ultima['lumenes']:.0f}",border=True)
 
-####################################descargar datos########################################################################
+####################################Descargar datos########################################################################
 st.markdown("---")
 st.subheader("📅 Descargar CSV histórico desde servidor remoto")
 
@@ -122,7 +122,7 @@ csv_url = f"https://med-bag-undertaken-cyber.trycloudflare.com/{fecha_str}.csv"
 # Descargar el CSV remoto
 try:
     df_remoto = pd.read_csv(csv_url)
-    st.success(f"✅ Archivo cargado correctamente desde: {csv_url}")
+    st.success(f"✅ Archivo cargado correctamente desde el repositorio.")
 
     st.dataframe(df_remoto, use_container_width=True)
 
@@ -133,5 +133,38 @@ try:
 except Exception as e:
     st.warning(f"⚠️ No se pudo cargar el archivo para {fecha_str}. Verifica si el invernadero adquirió datos en esa fecha.")
     #st.text(f"Detalles técnicos: {e}")
+
+
+################################### Visualización interactiva ####################################################
+st.markdown("---")
+st.subheader("📈 Visualización interactiva de variables")
+
+if 'df_remoto' in locals():
+    opciones = {
+        "🌡️ Temperatura (°C)": "temperatura",
+        "💧 Humedad en aire (%)": "humedad_aire",
+        "🌱 Humedad en suelo (%)": "humedad_suelo",
+        "📈 Presión (kPa)": "presion",
+        "🟢 CO₂ (ppm)": "co2",
+        "💡 Lumenes": "lumenes"
+    }
+
+    variable = st.selectbox("Selecciona la variable a graficar:", list(opciones.keys()))
+    nombre_columna = opciones[variable]
+
+    try:
+        # Asegurar que timestamp esté como índice de tiempo
+        df_remoto["timestamp"] = pd.to_datetime(df_remoto["timestamp"])
+        df_remoto = df_remoto.sort_values("timestamp")
+        df_remoto.set_index("timestamp", inplace=True)
+
+        st.line_chart(df_remoto[[nombre_columna]])
+
+    except Exception as e:
+        st.warning("⚠️ No se pudo graficar la variable seleccionada.")
+        #st.text(f"Error: {e}")
+else:
+    st.info("ℹ️ Primero descarga un archivo CSV para poder visualizar sus datos.")
+
 
 
