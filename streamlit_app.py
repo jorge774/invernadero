@@ -86,10 +86,8 @@ st.set_page_config(
 st.title("🌿 Dashboard de Invernadero")
 # === Actualización automática solo de la sección dashboard ===
 with st.container():
-    refresh = st_autorefresh(interval=300, key="dashboard_refresh", limit=None, disable=False)
-
-    st.subheader("🌿 Datos en tiempo real (refresca cada 30 ms)")
-    
+    refresh = st_autorefresh(interval=300, key="dashboard_refresh", limit=None)
+    st.subheader("🌿 Datos en tiempo real (refresca cada 30 ms)")    
     try:
         df = pd.read_csv(CACHE_FILE, parse_dates=["timestamp"])
         ultima = df.iloc[-1]
@@ -100,11 +98,9 @@ with st.container():
     except Exception:
         st.warning("⚠️ Ha ocurrido un error al tratar almacenar datos entrantes.")
         st.stop()
-
     a, b = st.columns(2)
     c, d = st.columns(2)
     e, f = st.columns(2)
-
     a.metric(label="🌡️ Temp (°C)", value=f"{ultima['temperatura']:.1f}",border=True)
     b.metric(label="💧 Humedad aire (%)",value= f"{ultima['humedad_aire']:.1f}",border=True)
     c.metric(label="🌱 Humedad suelo (%)", value=f"{ultima['humedad_suelo']:.1f}",border=True)
