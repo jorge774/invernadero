@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# app.py
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -12,18 +11,27 @@ import os
 # === Configuración MQTT ===
 BROKER = "test.mosquitto.org"
 PORT = 1883
-TOPICS = [("sensor/temperatura",0),("sensor/AireH",0),("sensor/SueloH",0),("sensor/Pres",0),("sensor/Co2",0),("sensor/Lu",0)]
+
+# Diccionario que mapea tópicos MQTT a columnas CSV
+TOPIC_MAP = {
+    "sensor/temperatura": "temperatura",
+    "sensor/AireH": "humedad_aire",
+    "sensor/SueloH": "humedad_suelo",
+    "sensor/Pres": "presion",
+    "sensor/Co2": "co2",
+    "sensor/Lu": "lumenes"
+}
+TOPICS = [(topic, 0) for topic in TOPIC_MAP.keys()]
+columnas = ["timestamp"] + list(TOPIC_MAP.values())
+claves_esperadas = list(TOPIC_MAP.values())
 CACHE_FILE = "cache.csv"
-columnas = ["timestamp","temperatura", "humedad_aire", "humedad_suelo", "presion", "co2", "lumenes"]
-ini_cache=[str(0) for _ in columnas]
-claves_esperadas = ["temperatura", "AireH", "SueloH", "Pres", "Co2", "Lu"]
 data_buffer = {}
+ini_cache = ["0" for _ in columnas]
 
 # === Configuración de endpoint remoto ===
-END_POINT = "https://england-amounts-identify-sherman.trycloudflare.com"+"/"
+END_POINT = "https://england-amounts-identify-sherman.trycloudflare.com/"
 
-
-# Crear archivo CSV de cache
+# === Crear archivo CSV si no existe ===
 try:
     open(CACHE_FILE, "r")
 except FileNotFoundError:
@@ -32,7 +40,6 @@ except FileNotFoundError:
     with open(CACHE_FILE, "a") as f:
         f.write(",".join(ini_cache) + "\n")
 
-
 # === Funciones MQTT ===
 def on_connect(client, userdata, flags, rc):
     for topic, qos in TOPICS:
@@ -40,29 +47,28 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, msg):
     timestamp = datetime.now().isoformat(timespec='seconds')
-    data_buffer["timestamp"] = timestamp
     topic = msg.topic
     value = msg.payload.decode("utf-8")
 
-    if topic == "sensor/temperatura":
-        data_buffer["temperatura"] = float(value)
-    elif topic == "sensor/AireH":
-        data_buffer["AireH"] = float(value)
-    elif topic == "sensor/SueloH":
-        data_buffer["SueloH"] = float(value)
-    elif topic == "sensor/Pres":
-        data_buffer["Pres"] = float(value)
-    elif topic == "sensor/Co2":
-        data_buffer["Co2"] = float(value)
-    elif topic == "sensor/Lu":
-        data_buffer["Lu"] = float(value)
+    data_buffer["timestamp"] = timestamp
+
+    if topic in TOPIC_MAP:
+        clave = TOPIC_MAP[topic]
+        try:
+            data_buffer[clave] = float(value)
+        except ValueError:
+            print(f"⚠️ Error al convertir valor de {topic}: {value}")
+            return
 
     completo = all(clave in data_buffer and data_buffer[clave] not in [None, "", "null"] for clave in claves_esperadas)
     if completo:
-        with open(CACHE_FILE, "r") as f:content=f.readlines()
-        content[-1]=(f"{data_buffer['timestamp']},{data_buffer['temperatura']},{data_buffer['AireH']},{data_buffer['SueloH']},{data_buffer['Pres']},{data_buffer['Co2']},{data_buffer['Lu']}\n")       
-        with open(CACHE_FILE, "w") as f:f.writelines(content)
-        data_buffer.clear()    
+        with open(CACHE_FILE, "r") as f:
+            content = f.readlines()
+        fila = ",".join(str(data_buffer.get(col, "")) for col in columnas) + "\n"
+        content[-1] = fila
+        with open(CACHE_FILE, "w") as f:
+            f.writelines(content)
+        data_buffer.clear()
 
 def start_mqtt_listener():
     client = mqtt.Client()
@@ -70,16 +76,13 @@ def start_mqtt_listener():
     client.on_message = on_message
     client.connect(BROKER, PORT, keepalive=60)
     client.loop_forever()
-    
-# Iniciar MQTT en hilo separado
+
+# === Lanzar hilo MQTT ===
 if 'mqtt_started' not in st.session_state:
     threading.Thread(target=start_mqtt_listener, daemon=True).start()
     st.session_state['mqtt_started'] = True
 
-# === INTERFAZ STREAMLIT ===
-def fila_es_cero(fila):
-    return fila.drop(labels=["timestamp"]).eq(0).all()
-
+# === Interfaz ===
 st.set_page_config(
     page_title="Invernadero Inteligente",
     page_icon="🌱",
@@ -87,10 +90,14 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 st.title("🌿 Dashboard de Invernadero")
-# === Actualización automática solo de la sección dashboard ===
+
 with st.container():
-    refresh = st_autorefresh(interval=500, key="dashboard_refresh", limit=None)
-    st.subheader("🌿 Datos en tiempo real (refresca cada 30 ms)")    
+    st_autorefresh(interval=500, key="dashboard_refresh", limit=None)
+    st.subheader("🌿 Datos en tiempo real (refresca cada 500 ms)")
+
+    def fila_es_cero(fila):
+        return fila.drop(labels=["timestamp"]).eq(0).all()
+
     try:
         df = pd.read_csv(CACHE_FILE, parse_dates=["timestamp"])
         ultima = df.iloc[-1]
@@ -99,44 +106,35 @@ with st.container():
             st.stop()
         st.success("📁 Esperando datos para ser procesados.")
     except Exception:
-        st.warning("⚠️ Ha ocurrido un error al tratar almacenar datos entrantes.")
+        st.warning("⚠️ Error al leer el archivo CSV de cache.")
         st.stop()
+
     a, b = st.columns(2)
     c, d = st.columns(2)
     e, f = st.columns(2)
-    a.metric(label="🌡️ Temp (°C)", value=f"{ultima['temperatura']:.1f}",border=True)
-    b.metric(label="💧 Humedad aire (%)",value= f"{ultima['humedad_aire']:.1f}",border=True)
-    c.metric(label="🌱 Humedad suelo (%)", value=f"{ultima['humedad_suelo']:.1f}",border=True)
-    d.metric(label="📈 Presión (kPa)", value=f"{ultima['presion']:.1f}",border=True)
-    e.metric(label="🟢 CO₂ (ppm)", value=f"{ultima['co2']:.0f}",border=True)
-    f.metric(label="💡 Lumenes",value= f"{ultima['lumenes']:.0f}",border=True)
+    a.metric(label="🌡️ Temp (°C)", value=f"{ultima['temperatura']:.1f}", border=True)
+    b.metric(label="💧 Humedad aire (%)", value=f"{ultima['humedad_aire']:.1f}", border=True)
+    c.metric(label="🌱 Humedad suelo (%)", value=f"{ultima['humedad_suelo']:.1f}", border=True)
+    d.metric(label="📈 Presión (kPa)", value=f"{ultima['presion']:.1f}", border=True)
+    e.metric(label="🟢 CO₂ (ppm)", value=f"{ultima['co2']:.0f}", border=True)
+    f.metric(label="💡 Lumenes", value=f"{ultima['lumenes']:.0f}", border=True)
 
-####################################Descargar datos########################################################################
+# === Descarga de CSV remoto ===
 st.markdown("---")
 st.subheader("📅 Descargar CSV histórico desde servidor remoto")
 
-# Selección de fecha
-fecha_seleccionada = st.date_input("Selecciona la fecha de los datos que quieres descargar")
-
-# Construir URL al archivo remoto
+fecha_seleccionada = st.date_input("Selecciona la fecha de los datos que quieres descargar", disabled=True)
 fecha_str = fecha_seleccionada.strftime("%Y%m%d")
 csv_url = f"{END_POINT}{fecha_str}.csv"
 
-# Descargar el CSV remoto
 try:
     df_remoto = pd.read_csv(csv_url)
-    st.success(f"✅ Archivo cargado correctamente desde el repositorio.")
-
+    st.success("✅ Archivo cargado correctamente desde el repositorio.")
     st.dataframe(df_remoto, use_container_width=True)
-
-    # Preparar archivo para descarga
     csv_bytes = df_remoto.to_csv(index=False).encode("utf-8")
     st.download_button("⬇️ Descargar CSV", data=csv_bytes, file_name=f"datosInvernadero_{fecha_str}.csv", mime="text/csv")
-
 except Exception as e:
     st.warning(f"⚠️ No se pudo cargar el archivo para {fecha_str}. Verifica si el invernadero adquirió datos en esa fecha.")
-    #st.text(f"Detalles técnicos: {e}")
-
 ################################### Visualización interactiva ####################################################
 # st.markdown("---")
 # st.subheader("📈 Visualización interactiva de variables")
