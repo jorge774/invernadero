@@ -19,6 +19,9 @@ ini_cache=[str(0) for _ in columnas]
 claves_esperadas = ["temperatura", "AireH", "SueloH", "Pres", "Co2", "Lu"]
 data_buffer = {}
 
+# === Configuración de endpoint remoto ===
+END_POINT = "https://england-amounts-identify-sherman.trycloudflare.com"+"/"
+
 
 # Crear archivo CSV de cache
 try:
@@ -117,7 +120,7 @@ fecha_seleccionada = st.date_input("Selecciona la fecha de los datos que quieres
 
 # Construir URL al archivo remoto
 fecha_str = fecha_seleccionada.strftime("%Y%m%d")
-csv_url = f"https://crude-shirt-answer-endorsement.trycloudflare.com/{fecha_str}.csv"
+csv_url = f"{END_POINT}{fecha_str}.csv"
 
 # Descargar el CSV remoto
 try:
