@@ -123,7 +123,7 @@ with st.container():
 st.markdown("---")
 st.subheader("📅 Descargar CSV histórico desde servidor remoto")
 
-fecha_seleccionada = st.date_input("Selecciona la fecha de los datos que quieres descargar", disabled=True)
+fecha_seleccionada = st.date_input("Selecciona la fecha de los datos que quieres descargar")
 fecha_str = fecha_seleccionada.strftime("%Y%m%d")
 csv_url = f"{END_POINT}{fecha_str}.csv"
 
