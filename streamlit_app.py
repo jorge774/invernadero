@@ -114,7 +114,7 @@ with st.container():
     e, f = st.columns(2)
     a.metric(label="🌡️ Temp (°C)", value=f"{ultima['temperatura']:.1f}", border=True)
     b.metric(label="💧 Humedad aire (%)", value=f"{ultima['humedad_aire']:.1f}", border=True)
-    c.metric(label="🌱 Humedad suelo (%)", value=f"{ultima['humedad_suelo']:.1f}", border=True)
+    c.metric(label="🌱 Humedad suelo (ADC)", value=f"{ultima['humedad_suelo']:.1f}", border=True)
     d.metric(label="📈 Presión (kPa)", value=f"{ultima['presion']:.1f}", border=True)
     e.metric(label="🟢 CO₂ (ppm)", value=f"{ultima['co2']:.0f}", border=True)
     f.metric(label="💡 Lumenes", value=f"{ultima['lumenes']:.0f}", border=True)
