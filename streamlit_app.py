@@ -138,7 +138,7 @@ except Exception as e:
 ################################### Visualización interactiva ####################################################
 st.markdown("---")
 st.subheader("📈 Visualización interactiva de variables")
- if 'df_remoto' in locals():
+if 'df_remoto' in locals():
      opciones = {
          "🌡️ Temperatura (°C)": "temperatura",
          "💧 Humedad en aire (%)": "humedad_aire",
@@ -162,7 +162,7 @@ st.subheader("📈 Visualización interactiva de variables")
      except Exception as e:
          st.warning("⚠️ No se pudo graficar la variable seleccionada.")
          st.text(f"Error: {e}")
- else:
+else:
      st.info("ℹ️ Primero asegurate de tener el csv con datos historicos.")
 
 
