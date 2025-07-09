@@ -92,8 +92,8 @@ st.set_page_config(
 st.title("🌿 Dashboard de Invernadero")
 
 with st.container():
-    st_autorefresh(interval=500, key="dashboard_refresh", limit=None)
-    st.subheader("🌿 Datos en tiempo real (refresca cada 500 ms)")
+    st_autorefresh(interval=300000, key="dashboard_refresh", limit=None)
+    st.subheader("🌿 Datos en tiempo real (refresca cada 5 minutos)")
 
     def fila_es_cero(fila):
         return fila.drop(labels=["timestamp"]).eq(0).all()
