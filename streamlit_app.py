@@ -138,32 +138,73 @@ except Exception as e:
 ################################### Visualización interactiva ####################################################
 st.markdown("---")
 st.subheader("📈 Visualización interactiva de variables")
+
 if 'df_remoto' in locals():
-     opciones = {
-         "🌡️ Temperatura (°C)": "temperatura",
-         "💧 Humedad en aire (%)": "humedad_aire",
-         "🌱 Humedad en suelo (ADC)": "humedad_suelo",
-         "📈 Presión (kPa)": "presion",
-         "🟢 CO₂ (ppm)": "co2",
-         "💡 Lumenes": "lumenes"
-     }
+    fecha_legible = fecha_seleccionada.strftime("%d de %B de %Y")
+    opciones = {
+        "🌡️ Temperatura (°C)": "temperatura",
+        "💧 Humedad en aire (%)": "humedad_aire",
+        "🌱 Humedad en suelo (ADC)": "humedad_suelo",
+        "📈 Presión (kPa)": "presion",
+        "🟢 CO₂ (ppm)": "co2",
+        "💡 Lumenes": "lumenes"
+    }
 
-     variable = st.selectbox("Selecciona la variable a graficar:", list(opciones.keys()))
-     nombre_columna = opciones[variable]
+    variable = st.selectbox("Selecciona la variable a graficar:", list(opciones.keys()))
+    nombre_columna = opciones[variable]
 
-     try:
-         # Asegurar que timestamp esté como índice de tiempo
-         df_remoto["timestamp"] = pd.to_datetime(df_remoto["timestamp"])
-         df_remoto = df_remoto.sort_values("timestamp")
-         df_remoto.set_index("timestamp", inplace=True)
+    try:
+        df_remoto["timestamp"] = pd.to_datetime(df_remoto["timestamp"])
+        df_remoto = df_remoto.sort_values("timestamp")
 
-         st.line_chart(df_remoto[[nombre_columna]])
+        # Crear gráfica con Plotly
+        fig = px.line(
+            df_remoto,
+            x="timestamp",
+            y=nombre_columna,
+            title=f"{variable} - {fecha_legible}",
+            labels={
+                "timestamp": "Tiempo",
+                nombre_columna: variable
+            }
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
-     except Exception as e:
-         st.warning("⚠️ No se pudo graficar la variable seleccionada.")
-         st.text(f"Error: {e}")
+    except Exception as e:
+        st.warning("⚠️ No se pudo graficar la variable seleccionada.")
+        #st.text(f"Error: {e}")
 else:
-     st.info("ℹ️ Primero asegurate de tener el csv con datos historicos.")
+    st.info("ℹ️ Primero asegurate de tener el CSV con datos históricos.")
+
+################################### Visualización interactiva ####################################################
+#st.markdown("---")
+#st.subheader("📈 Visualización interactiva de variables")
+#if 'df_remoto' in locals():
+     #opciones = {
+         #"🌡️ Temperatura (°C)": "temperatura",
+         #"💧 Humedad en aire (%)": "humedad_aire",
+         #"🌱 Humedad en suelo (ADC)": "humedad_suelo",
+         #"📈 Presión (kPa)": "presion",
+         #"🟢 CO₂ (ppm)": "co2",
+         #"💡 Lumenes": "lumenes"
+     #}
+
+     #variable = st.selectbox("Selecciona la variable a graficar:", list(opciones.keys()))
+     #nombre_columna = opciones[variable]
+
+     #try:
+         # Asegurar que timestamp esté como índice de tiempo
+         #df_remoto["timestamp"] = pd.to_datetime(df_remoto["timestamp"])
+         #df_remoto = df_remoto.sort_values("timestamp")
+         #df_remoto.set_index("timestamp", inplace=True)
+
+         #st.line_chart(df_remoto[[nombre_columna]])
+
+     #except Exception as e:
+         #st.warning("⚠️ No se pudo graficar la variable seleccionada.")
+         #st.text(f"Error: {e}")
+#else:
+     #st.info("ℹ️ Primero asegurate de tener el csv con datos historicos.")
 
 
 
