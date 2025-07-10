@@ -7,6 +7,7 @@ import paho.mqtt.client as mqtt
 import threading
 import time
 import os
+import plotly.express as px
 
 # === Configuración MQTT ===
 BROKER = "test.mosquitto.org"
