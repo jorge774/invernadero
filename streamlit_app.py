@@ -30,7 +30,7 @@ data_buffer = {}
 ini_cache = ["0" for _ in columnas]
 
 # === Configuración de endpoint remoto ===
-END_POINT = "https://england-amounts-identify-sherman.trycloudflare.com/"
+END_POINT = "https://statements-proposition-philosophy-ratings.trycloudflare.com/"
 
 # === Crear archivo CSV si no existe ===
 try:
