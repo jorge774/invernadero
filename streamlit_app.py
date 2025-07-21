@@ -114,7 +114,8 @@ with st.container():
         if fila_es_cero(ultima):
             st.warning("⚠️ La última medición contiene solo ceros. Verifica si los sensores están funcionando o si estan conectados a internet.")
             #st.stop()
-        st.success("📁 Esperando datos para ser procesados.")
+        else: 
+            st.success("📁 Recibiendo datos del sensor.")
     except Exception:
         st.warning("⚠️ Error al leer el archivo CSV de cache.")
         st.stop()
