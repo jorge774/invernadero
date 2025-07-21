@@ -4,3 +4,4 @@ paho-mqtt
 datetime
 pandas
 plotly
+locale
