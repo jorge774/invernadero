@@ -8,8 +8,15 @@ import threading
 import time
 import os
 import plotly.express as px
+# =======Traducir fecchas=====================
 #import locale
 #locale.setlocale(locale.LC_TIME,"es_ES.UTF-8")  # Para sistemas tipo Linux
+meses_es = {
+    "January": "enero", "February": "febrero", "March": "marzo",
+    "April": "abril", "May": "mayo", "June": "junio",
+    "July": "julio", "August": "agosto", "September": "septiembre",
+    "October": "octubre", "November": "noviembre", "December": "diciembre"
+}
 
 # === Configuración MQTT ===
 BROKER = "test.mosquitto.org"
@@ -143,7 +150,10 @@ st.markdown("---")
 st.subheader("📈 Visualización interactiva de variables")
 
 if 'df_remoto' in locals():
-    fecha_legible = fecha_seleccionada.strftime("%d de %B de %Y")
+    #fecha_legible = fecha_seleccionada.strftime("%d de %B de %Y")
+    nombre_mes_en = fecha_seleccionada.strftime("%B")  # e.g. "July"
+    nombre_mes_es = meses_es[nombre_mes_en]
+    fecha_legible = fecha.strftime(f"%d de {nombre_mes_es} de %Y")
     opciones = {
         "🌡️ Temperatura (°C)": "temperatura",
         "💧 Humedad en aire (%)": "humedad_aire",
@@ -159,7 +169,6 @@ if 'df_remoto' in locals():
     try:
         df_remoto["timestamp"] = pd.to_datetime(df_remoto["timestamp"])
         df_remoto = df_remoto.sort_values("timestamp")
-
         # Crear gráfica con Plotly
         fig = px.line(
             df_remoto,
