@@ -8,8 +8,8 @@ import threading
 import time
 import os
 import plotly.express as px
-import locale
-locale.setlocale(locale.LC_TIME, "es_ES.UTF-8")  # Para sistemas tipo Linux
+#import locale
+#locale.setlocale(locale.LC_TIME,"es_ES.UTF-8")  # Para sistemas tipo Linux
 
 # === Configuración MQTT ===
 BROKER = "test.mosquitto.org"
