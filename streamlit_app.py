@@ -8,6 +8,8 @@ import threading
 import time
 import os
 import plotly.express as px
+import locale
+locale.setlocale(locale.LC_TIME, "es_ES.UTF-8")  # Para sistemas tipo Linux
 
 # === Configuración MQTT ===
 BROKER = "test.mosquitto.org"
@@ -103,8 +105,8 @@ with st.container():
         df = pd.read_csv(CACHE_FILE, parse_dates=["timestamp"])
         ultima = df.iloc[-1]
         if fila_es_cero(ultima):
-            st.warning("⚠️ La última medición contiene solo ceros. Verifica si los sensores están funcionando.")
-            st.stop()
+            st.warning("⚠️ La última medición contiene solo ceros. Verifica si los sensores están funcionando o si estan conectados a internet.")
+            #st.stop()
         st.success("📁 Esperando datos para ser procesados.")
     except Exception:
         st.warning("⚠️ Error al leer el archivo CSV de cache.")
