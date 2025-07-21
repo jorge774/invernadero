@@ -153,7 +153,7 @@ if 'df_remoto' in locals():
     #fecha_legible = fecha_seleccionada.strftime("%d de %B de %Y")
     nombre_mes_en = fecha_seleccionada.strftime("%B")  # e.g. "July"
     nombre_mes_es = meses_es[nombre_mes_en]
-    fecha_legible = fecha.strftime(f"%d de {nombre_mes_es} de %Y")
+    fecha_legible = fecha_seleccionada.strftime(f"%d de {nombre_mes_es} de %Y")
     opciones = {
         "🌡️ Temperatura (°C)": "temperatura",
         "💧 Humedad en aire (%)": "humedad_aire",
